@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slot Driver</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f0;min-height:100vh}
+.app{max-width:700px;margin:0 auto;padding:12px}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,.12);border-radius:12px;padding:16px;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:0.5px solid rgba(0,0,0,.25);border-radius:8px;background:transparent;color:#111;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.btn:hover{background:#f0f0e8}.btn:active{transform:scale(.97)}
+.btn-p{background:#e6f1fb;border-color:#378add;color:#185fa5}
+.btn-d{background:#fcebeb;border-color:#e24b4a;color:#a32d2d}
+.btn-g{background:#eaf3de;border-color:#639922;color:#3b6d11}
+.btn-sm{padding:5px 10px;font-size:12px}.btn-xs{padding:3px 7px;font-size:11px}
+.badge{display:inline-flex;align-items:center;font-size:11px;padding:2px 7px;border-radius:6px;font-weight:500;white-space:nowrap}
+.bg{background:#eaf3de;color:#3b6d11}.ba{background:#faeeda;color:#854f0b}
+.br{background:#fcebeb;color:#a32d2d}.bb{background:#e6f1fb;color:#185fa5}.bx{background:#f0f0e8;color:#888}
+input,select{width:100%;padding:7px 10px;border:0.5px solid rgba(0,0,0,.25);border-radius:8px;background:#fff;color:#111;font-size:13px;font-family:inherit}
+input[type=checkbox]{width:auto}
+label{font-size:12px;color:#888;display:block;margin-bottom:3px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tab-bar{display:flex;border:0.5px solid rgba(0,0,0,.12);border-radius:8px;overflow:hidden;margin-bottom:12px;background:#f0f0e8}
+.tab{flex:1;padding:7px 2px;text-align:center;font-size:11px;cursor:pointer;background:transparent;border:none;color:#888;font-family:inherit}
+.tab.active{background:#fff;color:#111;font-weight:500}
+.st{font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.city-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f0f0e8;border-radius:8px;margin-bottom:6px}
+.slot-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:0.5px solid rgba(0,0,0,.12);border-radius:8px;margin-bottom:4px;gap:8px}
+.day-lbl{font-size:12px;color:#888;margin:10px 0 4px 2px}
+.stat{background:#f0f0e8;border-radius:8px;padding:10px;text-align:center}
+.stat-n{font-size:20px;font-weight:500}.stat-l{font-size:11px;color:#888;margin-top:2px}
+.msg{padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:10px}
+.msg-ok{background:#eaf3de;color:#3b6d11}.msg-w{background:#faeeda;color:#854f0b}.msg-e{background:#fcebeb;color:#a32d2d}
+.divider{border:none;border-top:0.5px solid rgba(0,0,0,.1);margin:12px 0}
+.driver-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid rgba(0,0,0,.1);gap:8px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal{background:#fff;border-radius:12px;padding:20px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto}
+.pill{padding:5px 11px;border-radius:20px;border:0.5px solid rgba(0,0,0,.25);font-size:12px;cursor:pointer;background:transparent;color:#888;font-family:inherit}
+.pill.active{background:#e6f1fb;border-color:#378add;color:#185fa5;font-weight:500}
+.qbtn{padding:5px 10px;border-radius:6px;border:0.5px solid rgba(0,0,0,.25);font-size:12px;cursor:pointer;background:transparent;color:#888;font-family:inherit}
+.qbtn:hover{background:#f0f0e8}
+.av{width:32px;height:32px;border-radius:50%;background:#e6f1fb;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#185fa5;flex-shrink:0}
+.rep-card{border:0.5px solid rgba(0,0,0,.1);border-radius:10px;padding:14px;margin-bottom:10px}
+.rep-title{font-size:14px;font-weight:500;margin-bottom:4px}
+.rep-desc{font-size:12px;color:#888;margin-bottom:12px}
+.dl-row{display:flex;gap:6px}
+.bar-wrap{background:#f0f0e8;border-radius:4px;height:8px;flex:1;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:#185fa5;transition:width .3s}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:6px 8px;background:#f0f0e8;font-weight:500;font-size:11px;color:#888}
+td{padding:6px 8px;border-bottom:0.5px solid rgba(0,0,0,.08)}
+.link-box{background:#f0f0e8;border-radius:8px;padding:10px 12px;font-size:12px;font-family:monospace;word-break:break-all;color:#888;margin:8px 0}
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;flex-direction:column;gap:12px;color:#888;font-size:14px}
+.spinner{width:28px;height:28px;border:2.5px solid #f0f0e8;border-top-color:#185fa5;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.online-dot{width:8px;height:8px;border-radius:50%;background:#3b6d11;display:inline-block;margin-right:4px}
+.offline-dot{width:8px;height:8px;border-radius:50%;background:#a32d2d;display:inline-block;margin-right:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- LOADING SCREEN -->
+<div id="screen-loading">
+  <div class="loading" style="margin-top:80px">
+    <div class="spinner"></div>
+    <p>Connessione in corso...</p>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="screen-login" style="display:none">
+  <div style="text-align:center;padding:24px 0 16px">
+    <div style="font-size:36px">🚗</div>
+    <p style="font-size:18px;font-weight:500;margin-top:8px">Slot Driver</p>
+    <p style="font-size:12px;color:#888;margin-top:3px">Accedi per prenotare il tuo turno</p>
+  </div>
+  <div class="card">
+    <div id="login-msg"></div>
+    <div style="margin-bottom:10px"><label>Username</label><input id="lu" placeholder="mario.rossi" autocomplete="username"></div>
+    <div style="margin-bottom:14px"><label>Password</label><input id="lp" type="password" placeholder="••••••" autocomplete="current-password"></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;font-size:14px;padding:9px" onclick="doLogin()">Accedi</button>
+  </div>
+</div>
+
+<!-- DRIVER -->
+<div id="screen-driver" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="av" id="drv-av"></div>
+      <div><p style="font-size:14px;font-weight:500" id="drv-name"></p><p style="font-size:11px;color:#888" id="drv-city"></p></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="conn-status" style="font-size:11px;color:#888"></span>
+      <button class="btn btn-sm" onclick="doLogout()">Esci</button>
+    </div>
+  </div>
+  <div id="drv-msg"></div>
+  <div id="drv-mine"></div>
+  <div id="drv-slots"></div>
+</div>
+
+<!-- ADMIN -->
+<div id="screen-admin" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <p style="font-size:15px;font-weight:500">⚙️ Admin</p>
+      <span id="conn-status-admin" style="font-size:11px;color:#888"></span>
+    </div>
+    <button class="btn btn-sm" onclick="doLogout()">Esci</button>
+  </div>
+  <div class="tab-bar">
+    <button class="tab active" id="tab-overview" onclick="aTab('overview')">Panoramica</button>
+    <button class="tab" id="tab-genera" onclick="aTab('genera')">Genera</button>
+    <button class="tab" id="tab-gestisci" onclick="aTab('gestisci')">Gestisci</button>
+    <button class="tab" id="tab-driver" onclick="aTab('driver')">Driver</button>
+    <button class="tab" id="tab-report" onclick="aTab('report')">📊 Report</button>
+    <button class="tab" id="tab-link" onclick="aTab('link')">Link</button>
+  </div>
+  <div id="admin-content"></div>
+</div>
+
+<div id="modal-container"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, update, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCEg6YpFSVltqF_6W3CccKBZ3JfnFEla-g",
+  authDomain: "driver-slot.firebaseapp.com",
+  databaseURL: "https://driver-slot-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "driver-slot",
+  storageBucket: "driver-slot.firebasestorage.app",
+  messagingSenderId: "1053545432386",
+  appId: "1:1053545432386:web:b245c9a7e6b2081cb874db"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── HELPERS ──────────────────────────────────────────────
+const CITIES = ['Milano','Roma','Torino'];
+const DAYS = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const DAYS_FULL = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+function pad(n){return n<10?'0'+n:''+n}
+function today(){return new Date().toISOString().split('T')[0]}
+function addDays(base,n){const d=new Date(base+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
+function fmtDate(d){const x=new Date(d+'T12:00:00');return x.toLocaleDateString('it-IT',{day:'numeric',month:'short'})}
+function fmtFull(d){const x=new Date(d+'T12:00:00');return DAYS_FULL[x.getDay()]+' '+fmtDate(d)}
+function initials(n){return n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
+function show(id){document.getElementById(id).style.display='block';}
+function hide(id){document.getElementById(id).style.display='none';}
+function setMsg(id,html,cls='ok',ms=3000){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="msg msg-${cls}">${html}</div>`;if(ms)setTimeout(()=>el.innerHTML='',ms);}
+
+// ── STATE ─────────────────────────────────────────────────
+let S = { user: null, users: {}, slots: {}, listeners: [] };
+
+// ── FIREBASE INIT ─────────────────────────────────────────
+async function initDB() {
+  try {
+    document.querySelector('#screen-loading p').textContent = 'Connessione a Firebase...';
+    const usersSnap = await get(ref(db, 'users'));
+    document.querySelector('#screen-loading p').textContent = 'Database raggiunto, caricamento...';
+    if (!usersSnap.exists()) {
+      await set(ref(db, 'users/admin'), {
+        name: 'Admin', pass: 'admin123', role: 'admin', city: null
+      });
+    }
+    hide('screen-loading');
+    show('screen-login');
+  } catch(e) {
+    document.getElementById('screen-loading').innerHTML = `
+      <div style="text-align:center;padding:40px 20px">
+        <div style="font-size:32px;margin-bottom:12px">❌</div>
+        <p style="font-size:15px;font-weight:500;margin-bottom:8px">Errore di connessione</p>
+        <p style="font-size:12px;color:#888;margin-bottom:16px">${e.message}</p>
+        <button onclick="location.reload()" style="padding:8px 16px;border-radius:8px;border:1px solid #378add;background:#e6f1fb;color:#185fa5;cursor:pointer;font-size:13px">Riprova</button>
+      </div>`;
+  }
+}
+
+// ── CONNECTION STATUS ─────────────────────────────────────
+onValue(ref(db, '.info/connected'), (snap) => {
+  const connected = snap.val();
+  const dot = connected ? '<span class="online-dot"></span>Live' : '<span class="offline-dot"></span>Offline';
+  const el1 = document.getElementById('conn-status');
+  const el2 = document.getElementById('conn-status-admin');
+  if(el1) el1.innerHTML = dot;
+  if(el2) el2.innerHTML = dot;
+});
+
+// ── LOGIN ─────────────────────────────────────────────────
+async function doLogin() {
+  const u = document.getElementById('lu').value.trim().toLowerCase();
+  const p = document.getElementById('lp').value;
+  document.getElementById('login-msg').innerHTML = '<div class="msg msg-ok">Accesso in corso...</div>';
+  const snap = await get(ref(db, `users/${u.replace(/\./g,'_')}`));
+  if (!snap.exists() || snap.val().pass !== p) {
+    document.getElementById('login-msg').innerHTML = '<div class="msg msg-e">Credenziali non corrette</div>';
+    return;
+  }
+  S.user = { id: u.replace(/\./g,'_'), displayId: u, ...snap.val() };
+  hide('screen-login');
+  document.getElementById('login-msg').innerHTML = '';
+  if (S.user.role === 'admin') { show('screen-admin'); aTab('overview'); }
+  else { show('screen-driver'); renderDriver(); }
+}
+
+function doLogout() {
+  // Remove all listeners
+  S.listeners.forEach(({r}) => off(r));
+  S.listeners = [];
+  S.user = null; S.users = {}; S.slots = {};
+  hide('screen-driver'); hide('screen-admin'); show('screen-login');
+  document.getElementById('lu').value = '';
+  document.getElementById('lp').value = '';
+}
+
+// ── DRIVER VIEW ───────────────────────────────────────────
+function renderDriver() {
+  const u = S.user;
+  document.getElementById('drv-av').textContent = initials(u.name);
+  document.getElementById('drv-name').textContent = u.name;
+  document.getElementById('drv-city').textContent = '📍 ' + u.city;
+  // Real-time listener on slots for this driver's city
+  const slotsRef = ref(db, 'slots');
+  onValue(slotsRef, (snap) => {
+    S.slots = snap.val() || {};
+    renderDriverContent();
+  });
+  S.listeners.push({r: slotsRef});
+}
+
+function renderDriverContent() {
+  const u = S.user;
+  const allSlots = Object.entries(S.slots).map(([id,v])=>({id,...v}));
+  const mine = allSlots.filter(s=>s.bookings&&s.bookings[u.id]&&s.date>=today());
+  const waiting = allSlots.filter(s=>s.waitlist&&s.waitlist[u.id]);
+
+  let mh = '';
+  if (mine.length || waiting.length) {
+    mh = '<div class="card"><p class="st">Le mie prenotazioni</p>';
+    mine.sort((a,b)=>a.date.localeCompare(b.date)||a.hour-b.hour).forEach(s => {
+      mh += `<div class="slot-row"><div><span style="font-size:13px;font-weight:500">${s.timeLabel}</span> <span class="badge bb">${s.city}</span><br><span style="font-size:11px;color:#888">${fmtFull(s.date)}</span></div><button class="btn btn-d btn-xs" onclick="cancelBook('${s.id}')">Cancella</button></div>`;
+    });
+    waiting.sort((a,b)=>a.date.localeCompare(b.date)||a.hour-b.hour).forEach(s => {
+      const pos = Object.keys(s.waitlist||{}).indexOf(u.id)+1;
+      mh += `<div class="slot-row"><div><span style="font-size:13px;font-weight:500">${s.timeLabel}</span> <span class="badge ba">Attesa #${pos}</span><br><span style="font-size:11px;color:#888">${fmtFull(s.date)}</span></div><button class="btn btn-xs" onclick="leaveWait('${s.id}')">Esci</button></div>`;
+    });
+    mh += '</div>';
+  }
+  document.getElementById('drv-mine').innerHTML = mh;
+
+  const citySlots = allSlots.filter(s=>s.city===u.city&&s.date>=today()).sort((a,b)=>a.date.localeCompare(b.date)||a.hour-b.hour);
+  const byDate = {};
+  citySlots.forEach(s=>{if(!byDate[s.date])byDate[s.date]=[];byDate[s.date].push(s);});
+
+  let sh = '<div class="card"><p class="st">Slot disponibili — '+u.city+'</p>';
+  if(!Object.keys(byDate).length) sh += '<p style="font-size:13px;color:#888;text-align:center;padding:16px">Nessuno slot disponibile al momento</p>';
+  Object.keys(byDate).sort().forEach(date => {
+    sh += `<p class="day-lbl">${fmtFull(date)}</p>`;
+    byDate[date].forEach(s => {
+      const bookCount = Object.keys(s.bookings||{}).length;
+      const isMe = s.bookings&&s.bookings[u.id];
+      const isWait = s.waitlist&&s.waitlist[u.id];
+      const full = bookCount >= s.maxPosts;
+      const free = s.maxPosts - bookCount;
+      let badge, btn = '';
+      if(isMe){badge='<span class="badge bg">✓ Prenotato</span>';}
+      else if(isWait){const pos=Object.keys(s.waitlist||{}).indexOf(u.id)+1;badge=`<span class="badge ba">⏳ #${pos}</span>`;}
+      else if(full){badge='<span class="badge br">Completo</span>';btn=`<button class="btn btn-xs" onclick="joinWait('${s.id}')">Lista attesa</button>`;}
+      else{badge=`<span class="badge bg">${free} ${free===1?'posto':'posti'}</span>`;btn=`<button class="btn btn-p btn-sm" onclick="bookSlot('${s.id}')">Prenota</button>`;}
+      sh += `<div class="slot-row"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:500">${s.timeLabel}</span>${badge}</div>${btn}</div>`;
+    });
+  });
+  sh += '</div>';
+  document.getElementById('drv-slots').innerHTML = sh;
+}
+
+// ── BOOKING ACTIONS ───────────────────────────────────────
+async function bookSlot(id) {
+  const u = S.user;
+  const sRef = ref(db, `slots/${id}`);
+  const snap = await get(sRef);
+  if(!snap.exists()) return;
+  const s = snap.val();
+  const bookCount = Object.keys(s.bookings||{}).length;
+  if(bookCount >= s.maxPosts){setMsg('drv-msg','Slot pieno, usa lista attesa','w');return;}
+  await update(ref(db,`slots/${id}/bookings`), {[u.id]: true});
+  setMsg('drv-msg','✓ Prenotazione confermata!');
+}
+
+async function cancelBook(id) {
+  const u = S.user;
+  const sRef = ref(db, `slots/${id}`);
+  const snap = await get(sRef);
+  if(!snap.exists()) return;
+  const s = snap.val();
+  await remove(ref(db,`slots/${id}/bookings/${u.id}`));
+  // Promote first from waitlist
+  const waitKeys = Object.keys(s.waitlist||{});
+  if(waitKeys.length > 0) {
+    const next = waitKeys[0];
+    await update(ref(db,`slots/${id}/bookings`), {[next]: true});
+    await remove(ref(db,`slots/${id}/waitlist/${next}`));
+  }
+  setMsg('drv-msg','Prenotazione cancellata','w');
+}
+
+async function joinWait(id) {
+  const u = S.user;
+  await update(ref(db,`slots/${id}/waitlist`), {[u.id]: Date.now()});
+  setMsg('drv-msg','⏳ Sei in lista d\'attesa');
+}
+
+async function leaveWait(id) {
+  const u = S.user;
+  await remove(ref(db,`slots/${id}/waitlist/${u.id}`));
+}
+
+// ── ADMIN TABS ────────────────────────────────────────────
+let curTab = 'overview';
+let adminSlotsListener = null;
+let adminUsersListener = null;
+
+function aTab(t) {
+  curTab = t;
+  ['overview','genera','gestisci','driver','report','link'].forEach(x=>{
+    document.getElementById('tab-'+x)?.classList.toggle('active',x===t);
+  });
+  const fns={overview:renderOverview,genera:renderGenera,gestisci:renderGestisci,driver:renderDriverTab,report:renderReport,link:renderLink};
+  if(fns[t]) fns[t]();
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────
+function renderOverview() {
+  document.getElementById('admin-content').innerHTML = '<div class="loading"><div class="spinner"></div><p>Caricamento...</p></div>';
+  const slotsRef = ref(db,'slots');
+  const usersRef = ref(db,'users');
+  if(adminSlotsListener) off(adminSlotsListener);
+  onValue(slotsRef, (sSnap) => {
+    S.slots = sSnap.val()||{};
+    get(usersRef).then(uSnap => {
+      S.users = uSnap.val()||{};
+      _renderOverview();
+    });
+  });
+  adminSlotsListener = slotsRef;
+}
+
+function _renderOverview() {
+  const allSlots = Object.entries(S.slots).map(([id,v])=>({id,...v}));
+  const drivers = Object.entries(S.users).filter(([,u])=>u.role==='driver');
+  const total = allSlots.length;
+  const booked = allSlots.reduce((a,s)=>a+Object.keys(s.bookings||{}).length,0);
+  const wait = allSlots.reduce((a,s)=>a+Object.keys(s.waitlist||{}).length,0);
+
+  const fDate = document.getElementById('ov-date')?.value||'';
+  const fCity = document.getElementById('ov-city')?.value||'';
+
+  const dates=[...new Set(allSlots.map(s=>s.date))].sort().filter(d=>d>=today()).slice(0,14);
+
+  let h=`<div class="g4" style="margin-bottom:12px">
+    <div class="stat"><div class="stat-n">${total}</div><div class="stat-l">Slot totali</div></div>
+    <div class="stat"><div class="stat-n">${booked}</div><div class="stat-l">Prenotazioni</div></div>
+    <div class="stat"><div class="stat-n">${wait}</div><div class="stat-l">In attesa</div></div>
+    <div class="stat"><div class="stat-n">${drivers.length}</div><div class="stat-l">Driver</div></div>
+  </div>
+  <div class="card" style="margin-bottom:8px"><div class="g2">
+    <div><label>Data</label><select id="ov-date" onchange="_renderOverview()"><option value="">Tutti</option>${dates.map(d=>`<option value="${d}" ${d===fDate?'selected':''}>${fmtFull(d)}</option>`).join('')}</select></div>
+    <div><label>Città</label><select id="ov-city" onchange="_renderOverview()"><option value="">Tutte</option>${CITIES.map(c=>`<option value="${c}" ${c===fCity?'selected':''}>${c}</option>`).join('')}</select></div>
+  </div></div>`;
+
+  let slots = allSlots.filter(s=>s.date>=today());
+  if(fDate) slots=slots.filter(s=>s.date===fDate);
+  if(fCity) slots=slots.filter(s=>s.city===fCity);
+
+  const byCityDate={};
+  slots.forEach(s=>{if(!byCityDate[s.city])byCityDate[s.city]={};if(!byCityDate[s.city][s.date])byCityDate[s.city][s.date]=[];byCityDate[s.city][s.date].push(s);});
+
+  h += '<div class="card">';
+  if(!slots.length) h+='<p style="font-size:13px;color:#888;text-align:center;padding:20px">Nessuno slot trovato</p>';
+  (fCity?[fCity]:CITIES).forEach(city=>{
+    if(!byCityDate[city]) return;
+    const cb=slots.filter(s=>s.city===city).reduce((a,s)=>a+Object.keys(s.bookings||{}).length,0);
+    const cw=slots.filter(s=>s.city===city).reduce((a,s)=>a+Object.keys(s.waitlist||{}).length,0);
+    h+=`<div style="margin-bottom:14px"><div class="city-hdr"><span style="font-size:14px;font-weight:500">📍 ${city}</span><div style="display:flex;gap:6px"><span class="badge bg">${cb} prenotati</span>${cw?`<span class="badge ba">${cw} attesa</span>`:''}</div></div>`;
+    Object.keys(byCityDate[city]||{}).sort().forEach(date=>{
+      h+=`<p class="day-lbl">${fmtFull(date)}</p>`;
+      byCityDate[city][date].sort((a,b)=>a.hour-b.hour).forEach(s=>{
+        const bookCount=Object.keys(s.bookings||{}).length;
+        const free=s.maxPosts-bookCount;
+        const names=Object.keys(s.bookings||{}).map(id=>S.users[id]?.name||id).join(', ');
+        const wnames=Object.keys(s.waitlist||{}).map(id=>S.users[id]?.name||id).join(', ');
+        const badge=free>0?`<span class="badge bg">${free} liberi</span>`:Object.keys(s.waitlist||{}).length?`<span class="badge ba">${Object.keys(s.waitlist||{}).length} attesa</span>`:`<span class="badge br">Pieno</span>`;
+        h+=`<div class="slot-row"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:13px;font-weight:500">${s.timeLabel}</span>${badge}<span style="font-size:11px;color:#888">${bookCount}/${s.maxPosts}</span></div>${names?`<p style="font-size:11px;color:#888;margin-top:2px">👤 ${names}</p>`:''}${wnames?`<p style="font-size:11px;color:#854f0b;margin-top:1px">⏳ ${wnames}</p>`:''}</div><div style="display:flex;gap:4px"><button class="btn btn-xs" onclick="modalEditSlot('${s.id}')">✏️</button><button class="btn btn-d btn-xs" onclick="delSlot('${s.id}')">🗑</button></div></div>`;
+      });
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+  document.getElementById('admin-content').innerHTML=h;
+}
+
+// ── GENERA ────────────────────────────────────────────────
+let genCities=new Set(CITIES), genDays=new Set([1,2,3,4,5]);
+
+// Parse "HH:MM" to minutes
+function timeToMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+function minToTime(m){return `${pad(Math.floor(m/60)%24)}:${pad(m%60)}`;}
+function timeOptions(sel=''){
+  let o='';
+  for(let h=0;h<24;h++)for(let m=0;m<60;m+=30){const v=`${pad(h)}:${pad(m)}`;o+=`<option value="${v}"${v===sel?' selected':''}>${v}</option>`;}
+  return o;
+}
+function updatePreview(){
+  const st=document.getElementById('gsh')?.value,et=document.getElementById('geh')?.value;
+  const dur=parseInt(document.getElementById('gdur')?.value)||120;
+  if(!st||!et)return;
+  const sm=timeToMin(st),em=timeToMin(et);
+  if(em<=sm){document.getElementById('gen-preview').innerHTML='<span style="color:#a32d2d">Fine deve essere dopo inizio</span>';return;}
+  const slots=[];for(let t=sm;t+dur<=em;t+=dur)slots.push(`${minToTime(t)}–${minToTime(t+dur)}`);
+  if(!slots.length){document.getElementById('gen-preview').innerHTML='<span style="color:#a32d2d">Nessuno slot generabile</span>';return;}
+  document.getElementById('gen-preview').innerHTML=`<span style="color:#3b6d11">✓ ${slots.length} slot per giorno:</span> <span style="color:#888;font-size:11px">${slots.join(' · ')}</span>`;
+}
+
+function renderGenera(){
+  document.getElementById('admin-content').innerHTML=`<div class="card">
+    <p class="st">Città</p>
+    <div class="g3" style="margin-bottom:14px">${CITIES.map(c=>`<button class="btn btn-p" id="gc-${c}" onclick="genTogCity('${c}')" style="justify-content:center">${c}</button>`).join('')}</div>
+    <div class="divider"></div>
+    <p class="st">Periodo</p>
+    <div class="g2" style="margin-bottom:14px">
+      <div><label>Dal</label><input type="date" id="gf" value="${today()}"></div>
+      <div><label>Al</label><input type="date" id="gt" value="${addDays(today(),6)}"></div>
+    </div>
+    <div class="divider"></div>
+    <p class="st">Giorni</p>
+    <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+      <button class="qbtn" onclick="genSD([1,2,3,4,5])">Feriali</button>
+      <button class="qbtn" onclick="genSD([0,6])">Weekend</button>
+      <button class="qbtn" onclick="genSD([0,1,2,3,4,5,6])">Tutti</button>
+      <button class="qbtn" onclick="genSD([])">Nessuno</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="gpills">
+      ${DAYS.map((d,i)=>`<button class="pill ${genDays.has(i)?'active':''}" onclick="genTogDay(${i})">${d}</button>`).join('')}
+    </div>
+    <div class="divider"></div>
+    <p class="st">Orari e durata slot — libertà totale</p>
+    <div class="g3" style="margin-bottom:8px">
+      <div><label>Dalle</label><select id="gsh" onchange="updatePreview()">${timeOptions('08:00')}</select></div>
+      <div><label>Alle (fine ultimo slot)</label><select id="geh" onchange="updatePreview()">${timeOptions('20:00')}</select></div>
+      <div><label>Durata slot</label><select id="gdur" onchange="updatePreview()">
+        <option value="30">30 min</option>
+        <option value="60">1 ora</option>
+        <option value="90">1h 30min</option>
+        <option value="120" selected>2 ore</option>
+        <option value="150">2h 30min</option>
+        <option value="180">3 ore</option>
+        <option value="240">4 ore</option>
+        <option value="300">5 ore</option>
+        <option value="360">6 ore</option>
+        <option value="480">8 ore</option>
+      </select></div>
+    </div>
+    <div id="gen-preview" style="font-size:12px;padding:6px 2px 10px;min-height:24px"></div>
+    <div class="divider"></div>
+    <p class="st">Posti massimi per slot</p>
+    <div class="g3" style="margin-bottom:14px">${CITIES.map(c=>`<div><label>${c}</label><input type="number" id="gm-${c}" value="${c==='Milano'?4:3}" min="1" max="200"></div>`).join('')}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><input type="checkbox" id="gov"><label style="margin:0;font-size:13px;color:#111">Sovrascrivi slot esistenti (aggiorna solo posti max)</label></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;font-size:14px;padding:9px" onclick="doGenerate()">⚡ Genera slot</button>
+    <div id="gen-msg" style="margin-top:10px"></div>
+  </div>`;
+  genCities=new Set(CITIES);
+  setTimeout(updatePreview,0);
+}
+
+function genTogCity(c){if(genCities.has(c))genCities.delete(c);else genCities.add(c);const b=document.getElementById('gc-'+c);if(b)b.className=`btn${genCities.has(c)?' btn-p':''}`;}
+function genTogDay(i){if(genDays.has(i))genDays.delete(i);else genDays.add(i);document.querySelectorAll('#gpills .pill').forEach((el,idx)=>el.classList.toggle('active',genDays.has(idx)));}
+function genSD(arr){genDays=new Set(arr);document.querySelectorAll('#gpills .pill').forEach((el,i)=>el.classList.toggle('active',genDays.has(i)));}
+
+async function doGenerate(){
+  const from=document.getElementById('gf').value,to=document.getElementById('gt').value;
+  const startTime=document.getElementById('gsh').value,endTime=document.getElementById('geh').value;
+  const dur=parseInt(document.getElementById('gdur').value)||120;
+  const ow=document.getElementById('gov').checked;
+  const sm=timeToMin(startTime),em=timeToMin(endTime);
+  if(!from||!to||from>to){document.getElementById('gen-msg').innerHTML='<div class="msg msg-e">Date non valide</div>';return;}
+  if(em<=sm){document.getElementById('gen-msg').innerHTML='<div class="msg msg-e">Orario di fine deve essere dopo l'inizio</div>';return;}
+  if(!genCities.size){document.getElementById('gen-msg').innerHTML='<div class="msg msg-e">Seleziona almeno una città</div>';return;}
+  if(!genDays.size){document.getElementById('gen-msg').innerHTML='<div class="msg msg-e">Seleziona almeno un giorno</div>';return;}
+  document.getElementById('gen-msg').innerHTML='<div class="msg msg-ok">Generazione in corso...</div>';
+  const snap=await get(ref(db,'slots'));
+  const existing=snap.val()||{};
+  const updates={};let count=0,updated=0,cur=from;
+  while(cur<=to){
+    const dt=new Date(cur+'T12:00:00');
+    if(genDays.has(dt.getDay())){
+      for(const city of genCities){
+        const maxP=parseInt(document.getElementById('gm-'+city)?.value)||3;
+        for(let t=sm;t+dur<=em;t+=dur){
+          const tLabel=`${minToTime(t)}–${minToTime(t+dur)}`;
+          const ex=Object.entries(existing).find(([,s])=>s.date===cur&&s.city===city&&s.timeLabel===tLabel);
+          if(ex){if(ow){updates[`slots/${ex[0]}/maxPosts`]=maxP;updated++;}}
+          else{
+            const newKey=`${cur}_${city}_${minToTime(t)}`.replace(/[^a-zA-Z0-9_]/g,'_');
+            updates[`slots/${newKey}`]={city,date:cur,timeLabel:tLabel,startMin:t,durMin:dur,maxPosts:maxP};
+            count++;
+          }
+        }
+      }
+    }
+    cur=addDays(cur,1);
+  }
+  await update(ref(db),updates);
+  document.getElementById('gen-msg').innerHTML=`<div class="msg msg-ok">✓ Creati ${count} slot${ow&&updated?`, aggiornati ${updated}`:''}</div>`;
+}
+
+// ── GESTISCI ──────────────────────────────────────────────
+function renderGestisci(){
+  document.getElementById('admin-content').innerHTML=`
+  <div class="card" style="margin-bottom:8px">
+    <p class="st" style="margin-bottom:10px">Elimina slot vuoti in bulk</p>
+    <div class="g2" style="margin-bottom:10px">
+      <div><label>Città</label><select id="dc"><option value="">Tutte</option>${CITIES.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>
+      <div><label>Data (da oggi in poi)</label><input type="date" id="dd" value="${today()}"></div>
+    </div>
+    <button class="btn btn-d" style="width:100%;justify-content:center" onclick="doBulkDel()">🗑 Elimina slot vuoti</button>
+    <div id="del-msg" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <p class="st" style="margin-bottom:10px">Modifica posti massimi in bulk</p>
+    <div class="g2" style="margin-bottom:10px">
+      <div><label>Città</label><select id="ec"><option value="">Tutte</option>${CITIES.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>
+      <div><label>Nuovi posti max</label><input type="number" id="em" value="3" min="1" max="20"></div>
+    </div>
+    <button class="btn btn-p" style="width:100%;justify-content:center" onclick="doBulkEdit()">✏️ Aggiorna posti</button>
+    <div id="edit-msg" style="margin-top:8px"></div>
+  </div>`;
+}
+
+async function doBulkDel(){
+  const city=document.getElementById('dc').value, date=document.getElementById('dd').value;
+  const snap=await get(ref(db,'slots'));
+  const all=snap.val()||{};
+  const updates={};
+  let n=0;
+  Object.entries(all).forEach(([id,s])=>{
+    if(s.date>=today()&&!s.bookings&&!s.waitlist){
+      if(city&&s.city!==city) return;
+      if(date&&s.date<date) return;
+      updates[`slots/${id}`]=null;n++;
+    }
+  });
+  await update(ref(db),updates);
+  document.getElementById('del-msg').innerHTML=`<div class="msg msg-ok">✓ Eliminati ${n} slot</div>`;
+}
+
+async function doBulkEdit(){
+  const city=document.getElementById('ec').value, max=parseInt(document.getElementById('em').value);
+  if(!max){document.getElementById('edit-msg').innerHTML='<div class="msg msg-e">Valore non valido</div>';return;}
+  const snap=await get(ref(db,'slots'));
+  const all=snap.val()||{};
+  const updates={};let n=0;
+  Object.entries(all).forEach(([id,s])=>{
+    if(s.date>=today()){
+      if(city&&s.city!==city) return;
+      updates[`slots/${id}/maxPosts`]=max;n++;
+    }
+  });
+  await update(ref(db),updates);
+  document.getElementById('edit-msg').innerHTML=`<div class="msg msg-ok">✓ Aggiornati ${n} slot</div>`;
+}
+
+async function delSlot(id){
+  if(!confirm('Eliminare questo slot?')) return;
+  await remove(ref(db,`slots/${id}`));
+}
+
+function modalEditSlot(id){
+  const s=Object.entries(S.slots).find(([k])=>k===id)?.[1];
+  if(!s) return;
+  document.getElementById('modal-container').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <p style="font-size:15px;font-weight:500;margin-bottom:10px">Modifica slot</p>
+    <p style="font-size:12px;color:#888;margin-bottom:12px">${s.city} · ${fmtFull(s.date)} · ${s.timeLabel}</p>
+    <div style="margin-bottom:12px"><label>Posti massimi</label><input type="number" id="me-max" value="${s.maxPosts}" min="${Object.keys(s.bookings||{}).length||1}" max="20"></div>
+    <div class="g2"><button class="btn" onclick="closeModal()">Annulla</button><button class="btn btn-p" onclick="saveEditSlot('${id}')">Salva</button></div>
+  </div></div>`;
+}
+
+async function saveEditSlot(id){
+  const v=parseInt(document.getElementById('me-max').value);
+  if(v>=1){await update(ref(db,`slots/${id}`),{maxPosts:v});closeModal();}
+}
+
+function closeModal(){document.getElementById('modal-container').innerHTML='';}
+
+// ── DRIVER TAB ────────────────────────────────────────────
+async function renderDriverTab(){
+  document.getElementById('admin-content').innerHTML='<div class="loading"><div class="spinner"></div><p>Caricamento...</p></div>';
+  const snap=await get(ref(db,'users'));
+  S.users=snap.val()||{};
+  const drivers=Object.entries(S.users).filter(([,u])=>u.role==='driver');
+  let h=`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><p class="st" style="margin:0">Driver (${drivers.length})</p><button class="btn btn-p btn-sm" onclick="modalAddDriver()">+ Aggiungi</button></div>`;
+  CITIES.forEach(city=>{
+    const cd=drivers.filter(([,d])=>d.city===city);
+    h+=`<p class="day-lbl" style="margin-bottom:6px">📍 ${city}</p>`;
+    if(!cd.length) h+='<p style="font-size:12px;color:#888;margin-bottom:8px">Nessun driver</p>';
+    cd.forEach(([id,d])=>{
+      h+=`<div class="driver-row"><div style="display:flex;align-items:center;gap:8px"><div class="av">${initials(d.name)}</div><div><p style="font-size:13px;font-weight:500">${d.name}</p><p style="font-size:11px;color:#888">${id.replace(/_/g,'.')} · ${d.city}</p></div></div><div style="display:flex;gap:5px"><button class="btn btn-xs" onclick="modalEditDriver('${id}')">✏️ Modifica</button><button class="btn btn-d btn-xs" onclick="delDriver('${id}')">🗑</button></div></div>`;
+    });
+  });
+  h+='</div>';
+  document.getElementById('admin-content').innerHTML=h;
+}
+
+function modalAddDriver(){
+  document.getElementById('modal-container').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <p style="font-size:15px;font-weight:500;margin-bottom:14px">Aggiungi driver</p>
+    <div style="margin-bottom:10px"><label>Nome completo</label><input id="nd-name" placeholder="Mario Rossi"></div>
+    <div style="margin-bottom:10px"><label>Username</label><input id="nd-id" placeholder="mario.rossi"></div>
+    <div style="margin-bottom:10px"><label>Città</label><select id="nd-city">${CITIES.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>
+    <div style="margin-bottom:14px"><label>Password</label><input id="nd-pass" value="pass123"></div>
+    <div class="g2"><button class="btn" onclick="closeModal()">Annulla</button><button class="btn btn-p" onclick="saveAddDriver()">Aggiungi</button></div>
+  </div></div>`;
+  document.getElementById('nd-name').addEventListener('input',function(){
+    document.getElementById('nd-id').value=this.value.toLowerCase().trim().replace(/\s+/g,'.');
+  });
+}
+
+async function saveAddDriver(){
+  const name=document.getElementById('nd-name').value.trim();
+  const id=document.getElementById('nd-id').value.trim().toLowerCase().replace(/\./g,'_');
+  const city=document.getElementById('nd-city').value;
+  const pass=document.getElementById('nd-pass').value;
+  if(!name||!id||!pass){alert('Compila tutti i campi');return;}
+  const snap=await get(ref(db,`users/${id}`));
+  if(snap.exists()){alert('Username già esistente');return;}
+  await set(ref(db,`users/${id}`),{name,pass,role:'driver',city});
+  closeModal();renderDriverTab();
+}
+
+function modalEditDriver(id){
+  const u=S.users[id];if(!u)return;
+  document.getElementById('modal-container').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <p style="font-size:15px;font-weight:500;margin-bottom:14px">Modifica driver</p>
+    <div style="margin-bottom:10px"><label>Nome</label><input id="ed-name" value="${u.name}"></div>
+    <div style="margin-bottom:10px"><label>Città</label><select id="ed-city">${CITIES.map(c=>`<option value="${c}" ${c===u.city?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div style="margin-bottom:14px"><label>Password</label><input id="ed-pass" value="${u.pass}"></div>
+    <div class="g2"><button class="btn" onclick="closeModal()">Annulla</button><button class="btn btn-p" onclick="saveEditDriver('${id}')">Salva</button></div>
+  </div></div>`;
+}
+
+async function saveEditDriver(id){
+  const name=document.getElementById('ed-name').value.trim();
+  const city=document.getElementById('ed-city').value;
+  const pass=document.getElementById('ed-pass').value;
+  await update(ref(db,`users/${id}`),{name,city,pass});
+  closeModal();renderDriverTab();
+}
+
+async function delDriver(id){
+  if(!confirm('Eliminare questo driver?')) return;
+  await remove(ref(db,`users/${id}`));
+  // Remove from all slots
+  const snap=await get(ref(db,'slots'));
+  const all=snap.val()||{};
+  const updates={};
+  Object.keys(all).forEach(sid=>{
+    if(all[sid].bookings?.[id]) updates[`slots/${sid}/bookings/${id}`]=null;
+    if(all[sid].waitlist?.[id]) updates[`slots/${sid}/waitlist/${id}`]=null;
+  });
+  if(Object.keys(updates).length) await update(ref(db),updates);
+  renderDriverTab();
+}
+
+// ── REPORT ────────────────────────────────────────────────
+async function renderReport(){
+  document.getElementById('admin-content').innerHTML='<div class="loading"><div class="spinner"></div><p>Caricamento dati...</p></div>';
+  const [sSnap,uSnap]=await Promise.all([get(ref(db,'slots')),get(ref(db,'users'))]);
+  S.slots=sSnap.val()||{};
+  S.users=uSnap.val()||{};
+  _renderReport();
+}
+
+function getDriverHours(id){
+  return Object.values(S.slots).filter(s=>s.bookings?.[id]).length*2;
+}
+function getCityHours(city){
+  return Object.values(S.slots).filter(s=>s.city===city).reduce((a,s)=>a+Object.keys(s.bookings||{}).length*2,0);
+}
+function getFasciaData(){
+  const f={};
+  Object.values(S.slots).forEach(s=>{
+    const k=`${pad(s.hour)}:00–${pad(s.hour+2)}:00`;
+    if(!f[k])f[k]=0;
+    f[k]+=Object.keys(s.bookings||{}).length*2;
+  });
+  return f;
+}
+
+function _renderReport(){
+  const drivers=Object.entries(S.users).filter(([,u])=>u.role==='driver');
+  const totalHours=drivers.reduce((a,[id])=>a+getDriverHours(id),0);
+  const maxH=Math.max(...drivers.map(([id])=>getDriverHours(id)),1);
+
+  let h=`<div class="g3" style="margin-bottom:12px">
+    <div class="stat"><div class="stat-n">${totalHours}</div><div class="stat-l">Ore totali</div></div>
+    <div class="stat"><div class="stat-n">${drivers.length}</div><div class="stat-l">Driver</div></div>
+    <div class="stat"><div class="stat-n">${drivers.length?Math.round(totalHours/drivers.length):0}</div><div class="stat-l">Media ore/driver</div></div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <p class="st" style="margin-bottom:12px">Scarica report</p>
+    <div class="rep-card"><p class="rep-title">📋 Ore per driver</p><p class="rep-desc">Totale ore prenotate da ogni driver</p><div class="dl-row"><button class="btn btn-g btn-sm" onclick="downloadCSV('driver')">⬇ CSV</button><button class="btn btn-p btn-sm" onclick="downloadPDF('driver')">⬇ PDF</button></div></div>
+    <div class="rep-card"><p class="rep-title">🏙️ Ore per città</p><p class="rep-desc">Distribuzione delle ore per ogni città</p><div class="dl-row"><button class="btn btn-g btn-sm" onclick="downloadCSV('city')">⬇ CSV</button><button class="btn btn-p btn-sm" onclick="downloadPDF('city')">⬇ PDF</button></div></div>
+    <div class="rep-card"><p class="rep-title">🕐 Ore per fascia oraria</p><p class="rep-desc">Quante ore prenotate per ogni fascia</p><div class="dl-row"><button class="btn btn-g btn-sm" onclick="downloadCSV('fascia')">⬇ CSV</button><button class="btn btn-p btn-sm" onclick="downloadPDF('fascia')">⬇ PDF</button></div></div>
+    <div class="rep-card"><p class="rep-title">📦 Report completo</p><p class="rep-desc">Tutti i dati: driver, città, fasce</p><div class="dl-row"><button class="btn btn-g btn-sm" onclick="downloadCSV('all')">⬇ CSV</button><button class="btn btn-p btn-sm" onclick="downloadPDF('all')">⬇ PDF</button></div></div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <p class="st" style="margin-bottom:10px">Analisi singolo driver</p>
+    <div style="margin-bottom:12px"><label>Seleziona driver</label><select id="sel-driver" onchange="renderDriverDetail()"><option value="">— Seleziona —</option>${drivers.map(([id,d])=>`<option value="${id}">${d.name} (${d.city})</option>`).join('')}</select></div>
+    <div id="driver-detail"><p style="font-size:13px;color:#888">Seleziona un driver per vedere il dettaglio</p></div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <p class="st" style="margin-bottom:10px">Classifica ore</p>
+    <table><thead><tr><th>#</th><th>Driver</th><th>Città</th><th>Ore</th><th>Attività</th></tr></thead><tbody>`;
+  [...drivers].sort((a,b)=>getDriverHours(b[0])-getDriverHours(a[0])).forEach(([id,d],i)=>{
+    const hrs=getDriverHours(id), pct=Math.round(hrs/maxH*100);
+    h+=`<tr><td style="color:#888">${i+1}</td><td style="font-weight:500">${d.name}</td><td><span class="badge bx">${d.city}</span></td><td><strong>${hrs}h</strong></td><td style="min-width:80px"><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div></td></tr>`;
+  });
+  h+=`</tbody></table></div>
+  <div class="card" style="margin-bottom:10px">
+    <p class="st" style="margin-bottom:10px">Ore per città</p>
+    <table><thead><tr><th>Città</th><th>Ore totali</th><th>Driver</th><th>Media</th></tr></thead><tbody>`;
+  CITIES.forEach(city=>{
+    const hrs=getCityHours(city), cd=drivers.filter(([,d])=>d.city===city).length;
+    h+=`<tr><td style="font-weight:500">📍 ${city}</td><td><strong>${hrs}h</strong></td><td>${cd}</td><td>${cd?Math.round(hrs/cd):0}h</td></tr>`;
+  });
+  const fascia=getFasciaData(), maxF=Math.max(...Object.values(fascia),1);
+  h+=`</tbody></table></div>
+  <div class="card">
+    <p class="st" style="margin-bottom:10px">Distribuzione fasce orarie</p>
+    <table><thead><tr><th>Fascia</th><th>Ore</th><th>Popolarità</th></tr></thead><tbody>`;
+  Object.keys(fascia).sort().forEach(k=>{
+    const v=fascia[k], pct=Math.round(v/maxF*100);
+    h+=`<tr><td style="font-weight:500">${k}</td><td>${v}h</td><td style="min-width:120px"><div style="display:flex;align-items:center;gap:8px"><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div><span style="font-size:11px;color:#888">${pct}%</span></div></td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  document.getElementById('admin-content').innerHTML=h;
+}
+
+function renderDriverDetail(){
+  const sel=document.getElementById('sel-driver')?.value;
+  const el=document.getElementById('driver-detail');if(!el)return;
+  if(!sel){el.innerHTML='<p style="font-size:13px;color:#888">Seleziona un driver</p>';return;}
+  const u=S.users[sel];if(!u)return;
+  const mySlots=Object.values(S.slots).filter(s=>s.bookings?.[sel]);
+  const hrs=mySlots.length*2;
+  const past=mySlots.filter(s=>s.date<today());
+  const future=mySlots.filter(s=>s.date>=today());
+  const byFascia={};mySlots.forEach(s=>{const k=s.timeLabel;if(!byFascia[k])byFascia[k]=0;byFascia[k]+=2;});
+  const favFascia=Object.entries(byFascia).sort((a,b)=>b[1]-a[1])[0];
+  el.innerHTML=`<div style="background:#f5f5f0;border-radius:8px;padding:12px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div class="av" style="width:40px;height:40px;font-size:14px">${initials(u.name)}</div>
+      <div><p style="font-size:15px;font-weight:500">${u.name}</p><p style="font-size:12px;color:#888">📍 ${u.city}</p></div>
+    </div>
+    <div class="g4">
+      <div class="stat"><div class="stat-n">${hrs}</div><div class="stat-l">Ore totali</div></div>
+      <div class="stat"><div class="stat-n">${past.length*2}</div><div class="stat-l">Ore passate</div></div>
+      <div class="stat"><div class="stat-n">${future.length*2}</div><div class="stat-l">Ore future</div></div>
+      <div class="stat"><div class="stat-n" style="font-size:13px">${favFascia?favFascia[0].split('–')[0]:'—'}</div><div class="stat-l">Fascia fav.</div></div>
+    </div>
+  </div>
+  ${future.length?`<p style="font-size:12px;color:#888;margin-bottom:10px">Prossimi: ${future.slice(0,3).map(s=>`${fmtDate(s.date)} ${s.timeLabel}`).join(' · ')}${future.length>3?` +${future.length-3} altri`:''}</p>`:''}
+  <div style="display:flex;gap:6px">
+    <button class="btn btn-g btn-xs" onclick="downloadCSV('driver-single','${sel}')">⬇ CSV</button>
+    <button class="btn btn-p btn-xs" onclick="downloadPDF('driver-single','${sel}')">⬇ PDF</button>
+  </div>`;
+}
+
+// ── EXPORT ────────────────────────────────────────────────
+function getDriverRows(){
+  return Object.entries(S.users).filter(([,u])=>u.role==='driver').map(([id,d])=>{
+    const s=Object.values(S.slots).filter(x=>x.bookings?.[id]);
+    return [d.name,d.city,s.length*2,s.filter(x=>x.date<today()).length*2,s.filter(x=>x.date>=today()).length*2,s.length];
+  });
+}
+function getCityRows(){
+  return CITIES.map(city=>{
+    const s=Object.values(S.slots).filter(x=>x.city===city);
+    const hrs=s.reduce((a,x)=>a+Object.keys(x.bookings||{}).length*2,0);
+    const nd=Object.values(S.users).filter(u=>u.role==='driver'&&u.city===city).length;
+    return [city,hrs,nd,nd?Math.round(hrs/nd):0];
+  });
+}
+function getFasciaRows(){const f=getFasciaData();return Object.keys(f).sort().map(k=>[k,f[k]]);}
+function getDriverSingleRows(id){
+  return Object.values(S.slots).filter(s=>s.bookings?.[id]).sort((a,b)=>a.date.localeCompare(b.date)||a.hour-b.hour).map(s=>[s.date,DAYS_FULL[new Date(s.date+'T12:00:00').getDay()],s.timeLabel,s.city,2]);
+}
+
+function downloadCSV(type,driverId=''){
+  let rows,headers,filename;
+  if(type==='driver'){headers=['Nome','Città','Ore totali','Ore passate','Ore future','Slot totali'];rows=getDriverRows();filename='ore_per_driver';}
+  else if(type==='city'){headers=['Città','Ore totali','N. driver','Media ore/driver'];rows=getCityRows();filename='ore_per_citta';}
+  else if(type==='fascia'){headers=['Fascia oraria','Ore totali'];rows=getFasciaRows();filename='ore_per_fascia';}
+  else if(type==='driver-single'){const u=S.users[driverId];headers=['Data','Giorno','Orario','Città','Ore'];rows=getDriverSingleRows(driverId);filename=`dettaglio_${u?.name?.replace(/ /g,'_')||driverId}`;}
+  else{
+    const lines=['=== ORE PER DRIVER ===','Nome,Città,Ore totali',...getDriverRows().map(r=>r.slice(0,3).join(',')),'','=== ORE PER CITTÀ ===','Città,Ore totali,Driver',...getCityRows().map(r=>r.slice(0,3).join(',')),'','=== FASCE ORARIE ===','Fascia,Ore',...getFasciaRows().map(r=>r.join(','))];
+    const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='report_completo.csv';a.click();return;
+  }
+  const csv=[headers.join(','),...rows.map(r=>r.map(v=>`"${v}"`).join(','))].join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename+'.csv';a.click();
+}
+
+function downloadPDF(type,driverId=''){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  const now=new Date().toLocaleDateString('it-IT');
+  const titles={driver:'Ore per Driver',city:'Ore per Città',fascia:'Ore per Fascia Oraria',all:'Report Completo'};
+  let title=titles[type]||'Dettaglio Driver';
+  if(type==='driver-single'){const u=S.users[driverId];title='Dettaglio: '+(u?.name||driverId);}
+  doc.setFontSize(18);doc.setTextColor(24,95,165);doc.text(title,14,20);
+  doc.setFontSize(10);doc.setTextColor(120);doc.text('Generato il '+now,14,28);doc.setTextColor(0);
+  let y=38;const hs={fillColor:[24,95,165],textColor:255};
+  if(type==='driver'){doc.autoTable({startY:y,head:[['Nome','Città','Ore totali','Ore passate','Ore future']],body:getDriverRows().map(r=>r.slice(0,5)),styles:{fontSize:10},headStyles:hs});}
+  else if(type==='city'){doc.autoTable({startY:y,head:[['Città','Ore totali','N. driver','Media ore/driver']],body:getCityRows(),styles:{fontSize:10},headStyles:hs});}
+  else if(type==='fascia'){doc.autoTable({startY:y,head:[['Fascia oraria','Ore totali']],body:getFasciaRows(),styles:{fontSize:10},headStyles:hs});}
+  else if(type==='driver-single'){
+    const u=S.users[driverId];const hrs=getDriverHours(driverId);
+    doc.setFontSize(11);doc.text(`Città: ${u?.city||'—'}   Ore totali: ${hrs}h`,14,y);y+=10;
+    doc.autoTable({startY:y,head:[['Data','Giorno','Orario','Città','Ore']],body:getDriverSingleRows(driverId),styles:{fontSize:10},headStyles:hs});
+  } else {
+    doc.setFontSize(13);doc.text('Ore per Driver',14,y);y+=6;
+    doc.autoTable({startY:y,head:[['Nome','Città','Ore totali']],body:getDriverRows().map(r=>r.slice(0,3)),styles:{fontSize:9},headStyles:hs});
+    y=doc.lastAutoTable.finalY+10;doc.text('Ore per Città',14,y);y+=6;
+    doc.autoTable({startY:y,head:[['Città','Ore totali','Driver']],body:getCityRows().map(r=>r.slice(0,3)),styles:{fontSize:9},headStyles:hs});
+    y=doc.lastAutoTable.finalY+10;doc.text('Fasce orarie',14,y);y+=6;
+    doc.autoTable({startY:y,head:[['Fascia','Ore']],body:getFasciaRows(),styles:{fontSize:9},headStyles:hs});
+  }
+  const fn=type==='driver-single'?`dettaglio_${S.users[driverId]?.name?.replace(/ /g,'_')||driverId}`:type==='all'?'report_completo':title.toLowerCase().replace(/ /g,'_');
+  doc.save(fn+'.pdf');
+}
+
+// ── LINK ─────────────────────────────────────────────────
+function renderLink(){
+  document.getElementById('admin-content').innerHTML=`<div class="card">
+    <p class="st">Link per i driver</p>
+    <p style="font-size:13px;color:#888;margin-bottom:10px">Condividi questo link con i tuoi driver una volta pubblicato su Netlify.</p>
+    <div class="link-box">https://bejewelled-bombolone-f8aab6.netlify.app</div>
+    <button class="btn btn-sm" style="margin-top:8px" onclick="navigator.clipboard.writeText('https://bejewelled-bombolone-f8aab6.netlify.app').then(()=>alert('Link copiato!'))">📋 Copia link</button>
+  </div>`;
+}
+
+// ── EXPOSE GLOBALS ────────────────────────────────────────
+// Needed because onclick= attributes are in global scope
+Object.assign(window, {
+  doLogin,doLogout,
+  updatePreview,
+  bookSlot,cancelBook,joinWait,leaveWait,
+  aTab,_renderOverview,
+  genTogCity,genTogDay,genSD,doGenerate,
+  doBulkDel,doBulkEdit,delSlot,modalEditSlot,saveEditSlot,closeModal,
+  renderDriverTab,modalAddDriver,saveAddDriver,modalEditDriver,saveEditDriver,delDriver,
+  renderDriverDetail,downloadCSV,downloadPDF,
+});
+
+// ── START ─────────────────────────────────────────────────
+initDB();
+</script>
+</body>
+</html>
